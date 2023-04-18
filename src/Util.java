@@ -2,18 +2,14 @@ import java.io.*;
 import java.util.*;
 
 public class Util {
-    public static Map<String, ArrayList<ArrayList<Double>>> doubleFolderMap = new HashMap<>();
-
-    public static void fileSelector(String dirPathname){
-        File directory = new File(dirPathname);
-
-        if(!directory.isDirectory())
-            System.out.println(dirPathname + " is not directory");
-        else
-            getDataFromDirectory(directory);
-    }
+    public static Map<String, ArrayList<ArrayList<Double>>> languageToVectorsMap = new HashMap<>();
 
     public static void getDataFromDirectory(File directory)  {
+
+        if(!directory.isDirectory()){
+            throw new RuntimeException(directory + "is not a directory.");
+        }
+
         try{
             File[] files = directory.listFiles();
 
@@ -21,61 +17,33 @@ public class Util {
             for (File file : files) {
                 if(file.isDirectory()){
                     File[] txtFiles = file.listFiles();
-                    ArrayList<ArrayList<Integer>> languageData = new ArrayList<>();
-                    ArrayList<ArrayList<Double>> doubleLanguageData = new ArrayList<>();
+                    ArrayList<ArrayList<Integer>> languageLetterCountVectors = new ArrayList<>();
+                    ArrayList<ArrayList<Double>> languageLetterFrequencyVectors = new ArrayList<>();
 
                     assert txtFiles != null;
                     Arrays.stream(txtFiles).forEach(txtFile -> {
                         try {
                             BufferedReader reader = new BufferedReader(new FileReader(txtFile));
-                            ArrayList<Integer> valueList = new ArrayList<>(Collections.nCopies(26, 0));
-                            ArrayList<Double> doubleValueList = new ArrayList<>(Collections.nCopies(26, 0.0));
+                            ArrayList<Integer> letterCountVector = new ArrayList<>(Collections.nCopies(26, 0));
+                            ArrayList<Double> letterFrequencyVector = new ArrayList<>(Collections.nCopies(26, 0.0));
                             String line;
                             while ((line = reader.readLine()) != null){
-                                for(int i =0; i < line.length(); i++)
-                                    switch(line.charAt(i)){
-                                        case 'a' -> valueList.set(0, valueList.get(0)+1);
-                                        case 'b' -> valueList.set(1, valueList.get(1)+1);
-                                        case 'c' -> valueList.set(2, valueList.get(2)+1);
-                                        case 'd' -> valueList.set(3, valueList.get(3)+1);
-                                        case 'e' -> valueList.set(4, valueList.get(4)+1);
-                                        case 'f' -> valueList.set(5, valueList.get(5)+1);
-                                        case 'g' -> valueList.set(6, valueList.get(6)+1);
-                                        case 'h' -> valueList.set(7, valueList.get(7)+1);
-                                        case 'i' -> valueList.set(8, valueList.get(8)+1);
-                                        case 'j' -> valueList.set(9, valueList.get(9)+1);
-                                        case 'k' -> valueList.set(10, valueList.get(10)+1);
-                                        case 'l' -> valueList.set(11, valueList.get(11)+1);
-                                        case 'm' -> valueList.set(12, valueList.get(12)+1);
-                                        case 'n' -> valueList.set(13, valueList.get(13)+1);
-                                        case 'o' -> valueList.set(14, valueList.get(14)+1);
-                                        case 'p' -> valueList.set(15, valueList.get(15)+1);
-                                        case 'q' -> valueList.set(16, valueList.get(16)+1);
-                                        case 'r' -> valueList.set(17, valueList.get(17)+1);
-                                        case 's' -> valueList.set(18, valueList.get(18)+1);
-                                        case 't' -> valueList.set(19, valueList.get(19)+1);
-                                        case 'u' -> valueList.set(20, valueList.get(20)+1);
-                                        case 'v' -> valueList.set(21, valueList.get(21)+1);
-                                        case 'w' -> valueList.set(22, valueList.get(22)+1);
-                                        case 'x' -> valueList.set(23, valueList.get(23)+1);
-                                        case 'y' -> valueList.set(24, valueList.get(24)+1);
-                                        case 'z' -> valueList.set(25, valueList.get(25)+1);
-                                    }
+                                countLetters(line, letterCountVector);
                             }
 
-                            languageData.add(valueList);
-                            languageData.forEach(txt -> {
+                            languageLetterCountVectors.add(letterCountVector);
+                            languageLetterCountVectors.forEach(txt -> {
                                 int letterCount =0;
                                 for(int number : txt) {
                                     letterCount+= number;
                                 }
                                 for(int i=0; i< txt.size(); i++){
-                                    doubleValueList.set(i, (double)txt.get(i)/letterCount);
+                                    letterFrequencyVector.set(i, (double)txt.get(i)/letterCount);
                                 }
                             });
-                            doubleLanguageData.add(doubleValueList);
+                            languageLetterFrequencyVectors.add(letterFrequencyVector);
 
-                            doubleFolderMap.put(file.getName(), doubleLanguageData);
+                            languageToVectorsMap.put(file.getName(), languageLetterFrequencyVectors);
 
                         }
                         catch (Exception ex) {
@@ -91,49 +59,54 @@ public class Util {
 
     }
 
-    public static ArrayList<Double> convertData(String data){
-        ArrayList<Integer> valueList = new ArrayList<>(Collections.nCopies(26, 0));
-        ArrayList<Double> doubleValueList = new ArrayList<>(Collections.nCopies(26, 0.0));
+    public static ArrayList<Double> convertSentenceToVector(String data){
+        ArrayList<Integer> letterCountVector = new ArrayList<>(Collections.nCopies(26, 0));
+        ArrayList<Double> letterFrequencyVector = new ArrayList<>(Collections.nCopies(26, 0.0));
 
-        for(int i =0; i < data.length(); i++)
-            switch(data.charAt(i)){
-                case 'a' -> valueList.set(0, valueList.get(0)+1);
-                case 'b' -> valueList.set(1, valueList.get(1)+1);
-                case 'c' -> valueList.set(2, valueList.get(2)+1);
-                case 'd' -> valueList.set(3, valueList.get(3)+1);
-                case 'e' -> valueList.set(4, valueList.get(4)+1);
-                case 'f' -> valueList.set(5, valueList.get(5)+1);
-                case 'g' -> valueList.set(6, valueList.get(6)+1);
-                case 'h' -> valueList.set(7, valueList.get(7)+1);
-                case 'i' -> valueList.set(8, valueList.get(8)+1);
-                case 'j' -> valueList.set(9, valueList.get(9)+1);
-                case 'k' -> valueList.set(10, valueList.get(10)+1);
-                case 'l' -> valueList.set(11, valueList.get(11)+1);
-                case 'm' -> valueList.set(12, valueList.get(12)+1);
-                case 'n' -> valueList.set(13, valueList.get(13)+1);
-                case 'o' -> valueList.set(14, valueList.get(14)+1);
-                case 'p' -> valueList.set(15, valueList.get(15)+1);
-                case 'q' -> valueList.set(16, valueList.get(16)+1);
-                case 'r' -> valueList.set(17, valueList.get(17)+1);
-                case 's' -> valueList.set(18, valueList.get(18)+1);
-                case 't' -> valueList.set(19, valueList.get(19)+1);
-                case 'u' -> valueList.set(20, valueList.get(20)+1);
-                case 'v' -> valueList.set(21, valueList.get(21)+1);
-                case 'w' -> valueList.set(22, valueList.get(22)+1);
-                case 'x' -> valueList.set(23, valueList.get(23)+1);
-                case 'y' -> valueList.set(24, valueList.get(24)+1);
-                case 'z' -> valueList.set(25, valueList.get(25)+1);
-            }
+        countLetters(data, letterCountVector);
 
         int sum = 0;
-        for (Integer integer : valueList) {
+        for (Integer integer : letterCountVector) {
             sum += integer;
         }
 
-        for (int i = 0; i < doubleValueList.size(); i++) {
-            doubleValueList.set(i, (double)valueList.get(i)/sum);
+        for (int i = 0; i < letterFrequencyVector.size(); i++) {
+            letterFrequencyVector.set(i, (double)letterCountVector.get(i)/sum);
         }
 
-        return doubleValueList;
+        return letterFrequencyVector;
+
+    }
+
+    private static void countLetters(String sentence, ArrayList<Integer> lettersCountVector) {
+        for(int i =0; i < sentence.length(); i++)
+            switch(sentence.charAt(i)){
+                case 'a' -> lettersCountVector.set(0, lettersCountVector.get(0)+1);
+                case 'b' -> lettersCountVector.set(1, lettersCountVector.get(1)+1);
+                case 'c' -> lettersCountVector.set(2, lettersCountVector.get(2)+1);
+                case 'd' -> lettersCountVector.set(3, lettersCountVector.get(3)+1);
+                case 'e' -> lettersCountVector.set(4, lettersCountVector.get(4)+1);
+                case 'f' -> lettersCountVector.set(5, lettersCountVector.get(5)+1);
+                case 'g' -> lettersCountVector.set(6, lettersCountVector.get(6)+1);
+                case 'h' -> lettersCountVector.set(7, lettersCountVector.get(7)+1);
+                case 'i' -> lettersCountVector.set(8, lettersCountVector.get(8)+1);
+                case 'j' -> lettersCountVector.set(9, lettersCountVector.get(9)+1);
+                case 'k' -> lettersCountVector.set(10, lettersCountVector.get(10)+1);
+                case 'l' -> lettersCountVector.set(11, lettersCountVector.get(11)+1);
+                case 'm' -> lettersCountVector.set(12, lettersCountVector.get(12)+1);
+                case 'n' -> lettersCountVector.set(13, lettersCountVector.get(13)+1);
+                case 'o' -> lettersCountVector.set(14, lettersCountVector.get(14)+1);
+                case 'p' -> lettersCountVector.set(15, lettersCountVector.get(15)+1);
+                case 'q' -> lettersCountVector.set(16, lettersCountVector.get(16)+1);
+                case 'r' -> lettersCountVector.set(17, lettersCountVector.get(17)+1);
+                case 's' -> lettersCountVector.set(18, lettersCountVector.get(18)+1);
+                case 't' -> lettersCountVector.set(19, lettersCountVector.get(19)+1);
+                case 'u' -> lettersCountVector.set(20, lettersCountVector.get(20)+1);
+                case 'v' -> lettersCountVector.set(21, lettersCountVector.get(21)+1);
+                case 'w' -> lettersCountVector.set(22, lettersCountVector.get(22)+1);
+                case 'x' -> lettersCountVector.set(23, lettersCountVector.get(23)+1);
+                case 'y' -> lettersCountVector.set(24, lettersCountVector.get(24)+1);
+                case 'z' -> lettersCountVector.set(25, lettersCountVector.get(25)+1);
+            }
     }
 }

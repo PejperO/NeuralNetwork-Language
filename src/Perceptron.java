@@ -1,11 +1,14 @@
 import java.util.ArrayList;
 
 public class Perceptron {
-    ArrayList<Double> weights;
-    String className;
-    double threshold =  0.2;
+    private ArrayList<Double> weights;
+    private final String className;
 
-    public Perceptron (ArrayList<Double> weights, String className){
+    public String getClassName() {
+        return className;
+    }
+
+    public Perceptron (ArrayList<Double> weights, double threshold, String className){
         this.weights = weights;
         this.weights.add(threshold);
         this.className=className;
@@ -14,8 +17,9 @@ public class Perceptron {
     public Double getOutput(ArrayList<Double> input){
         double sum = 0.0;
 
-        for(int i=0; i<input.size(); i++)
+        for(int i=0; i<input.size(); i++){
             sum+= weights.get(i)*input.get(i);
+        }
 
         if(sum >= -1 && sum <= 1)
             return sum;
@@ -30,26 +34,25 @@ public class Perceptron {
     }
 
     public void teach(ArrayList<Double> input, Double constant, String correctLanguage){
-        ArrayList<Double> newScales = new ArrayList<>();
+        ArrayList<Double> newWeights = new ArrayList<>();
 
         if(this.className.equals(correctLanguage)) {
             for (int i = 0; i < weights.size() ; i++)
-                newScales.add(weights.get(i) + (1 - this.getOutput(input)) * constant * input.get(i));
-
-        }else
+                newWeights.add(weights.get(i) + (1 - this.getOutput(input)) * constant * input.get(i));
+        }else{
             for (int i = 0; i < weights.size() ; i++)
-                newScales.add(weights.get(i) + (-1 - this.getOutput(input)) * constant * input.get(i));
-
-        this.weights = newScales;
+                newWeights.add(weights.get(i) + (-1 - this.getOutput(input)) * constant * input.get(i));
+        }
+        this.weights = newWeights;
     }
 
     public String toString(){
-        StringBuilder tmp = new StringBuilder("scales: ");
-
+        StringBuilder tmp = new StringBuilder("Wagi: ");
         for(int i = 0; i< weights.size()-1; i++)
             tmp.append(weights.get(i)).append(" ");
-
-        tmp.append("Threshold: ").append(weights.get(weights.size() - 1));
+        tmp.append("Próg: ").append(weights.get(weights.size() - 1));
         return tmp.toString();
     }
+
+
 }

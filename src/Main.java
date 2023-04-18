@@ -1,48 +1,65 @@
+import java.io.File;
 import java.util.*;
 
 public class Main {
     public static void main(String[] args) {
-        Util.fileSelector("trainData");
-        Map<String, ArrayList<ArrayList<Double>>> trainDataMap = Util.doubleFolderMap;
 
-        ArrayList<Perceptron> perceptronArrayList = new ArrayList<>();
-        trainDataMap.forEach((lang, data) -> perceptronArrayList.add(new Perceptron(new ArrayList<>(Collections.nCopies(26, 0.1)), lang)));
+        //loading train data
+        Util.getDataFromDirectory(new File("trainData"));
+        Map<String, ArrayList<ArrayList<Double>>> trainDataMap = Util.languageToVectorsMap;
 
-        for(int i=0; i< 5; i++){
-            perceptronArrayList.forEach(perceptron -> trainDataMap.forEach((lang, data) -> data.forEach((txt) -> {
+        ArrayList<Perceptron> perceptrons = new ArrayList<>();
+        trainDataMap.forEach((lang, data) -> {
+            perceptrons.add(new Perceptron(new ArrayList<>(Collections.nCopies(26, 0.1)), 0.2, lang));
+        });
+
+        //training
+        for(int i=0; i< 5000; i++){
+            perceptrons.forEach(perceptron -> trainDataMap.forEach((lang, data) -> data.forEach((txt) -> {
                 ArrayList<Double> tmpIntList = new ArrayList<>(txt);
                 tmpIntList.add(-1.0);
                 perceptron.teach(tmpIntList, 0.1, lang);
             })));
         }
 
-        /*Util.doubleFolderMap = new HashMap<>();
-        Util.fileSelector("testData");
-        Map<String, ArrayList<ArrayList<Double>>> testDataMap = Util.doubleFolderMap;
+        //loading test data
+        Util.languageToVectorsMap = new HashMap<>();
+        Util.getDataFromDirectory(new File("testData"));
+        Map<String, ArrayList<ArrayList<Double>>> testDataMap = Util.languageToVectorsMap;
 
-        testDataMap.forEach((lang, value) -> {
-            System.out.println(lang+ " test");
-            perceptronArrayList.forEach(perceptron -> value.forEach(row -> System.out.println(perceptron.className + " " + perceptron.getOutput(row))));
-            System.out.println();
-        });*/
-
-        Scanner scanner = new Scanner(System.in);
-        System.out.print("Enter a sentence: ");
-        String sentence = scanner.nextLine();
-
-        System.out.print("The sentence is written in ");
-
-        double maxActivation = 0.0;
-        String mostActivePerceptronClassName = "";
-
-        for (Perceptron perceptron : perceptronArrayList) {
-            double activationValue = perceptron.getOutput(Util.convertData(sentence));
-            if ((activationValue > maxActivation)) {
-                maxActivation = activationValue;
-                mostActivePerceptronClassName = perceptron.className;
+        //testing
+        for (int i = 0; i < testDataMap.size(); i++) {
+            System.out.println((new Locale( testDataMap.keySet().toArray()[i].toString()).getDisplayLanguage(new Locale("en")) + " test:"));
+            ArrayList<ArrayList<Double>> languageVectors = (ArrayList<ArrayList<Double>>) testDataMap.values().toArray()[i];
+            for (int j = 0; j < languageVectors.size(); j++) {
+                String maxActivatedPerceptronClassName = predict(perceptrons, languageVectors.get(j));
+                System.out.println(j + ". " + (testDataMap.keySet().toArray()[i].equals(maxActivatedPerceptronClassName) ? "correct" : "incorrect"));
             }
+            System.out.println();
         }
 
-        System.out.print(mostActivePerceptronClassName);
+
+        while(true){
+            Scanner scanner = new Scanner(System.in);
+            System.out.println("Enter a sentence: ");
+            String sentence = scanner.nextLine();
+            System.out.print("Your sentence is written in " +  (new Locale(predict(perceptrons, Util.convertSentenceToVector(sentence)) )).getDisplayLanguage(new Locale("en")) + "\n\n");
+        }
+
     }
+
+    private static String predict(ArrayList<Perceptron> perceptrons, ArrayList<Double> input) {
+        double maxActivation = 0.0;
+        String mostActivePerceptronClassName = "";
+        for (Perceptron perceptron : perceptrons) {
+            double activationValue = perceptron.getOutput(input);
+            if ((activationValue > maxActivation)) {
+                maxActivation = activationValue;
+                mostActivePerceptronClassName = perceptron.getClassName();
+            }
+        }
+        return mostActivePerceptronClassName;
+    }
+
+
 }
